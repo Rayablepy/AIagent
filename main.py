@@ -1,38 +1,30 @@
 from dotenv import load_dotenv
 from pydantic import BaseModel
-from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
+from langchain.agents import create_agent
 
 load_dotenv()
 
 class Responsetemplate(BaseModel):
-    Diagnosis: str
+    restatequestion: str
     explanation: str
     solution: str
-    check: str
+    identifymistakes: str
+    understandingcheck: str
 
 llm=ChatAnthropic(
     model="claude-sonnet-4-5-20250929")
 
 parser = PydanticOutputParser(pydantic_object=Responsetemplate)
-
-prompt = ChatPromptTemplate.from_messages(
-
-    [
-        ("system",
-         """
-            You are a patient expert tutor for any subject.
-            For every response:
-            1. Restate the question.
-            2. Explain the concept clearly (simple language, define terms).
-            3. Show step-by-step solution if applicable.
-            4. Identify mistakes gently if present.
-            5. Ask one check-for-understanding question.
-            6. Provide one similar practice problem (with optional hint).
-            Be structured, concise, supportive, and clear. every time
-         """)
-    ]
+system_prompt = (
+    "You are a patient expert tutor for any subject.\n"
+    "For every response, answer the user query and use necessary tools.\n"
+    "Wrap the output in this format and provide no other text:\n"
+    f"{parser.get_format_instructions()}"
 )
+
+agent = create_agent(model=llm, tools=[], system_prompt=system_prompt)
+
+result = agent.invoke()
 
