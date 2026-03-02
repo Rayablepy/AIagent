@@ -1,5 +1,10 @@
+import memoryservice from  "./memoryservice.js";
 import anthropic from "../config/anthropic.js";
-const executeagent = async (message) => {
+const executeagent = async (message,sessionId) => {
+    const history = memoryservice.getHistory(sessionId);
+
+    memoryservice.saveMessage(sessionId, "user",message);
+
     const response = await anthropic.messages.create({
         model: "claude-3-5-haiku-20241022",
         max_tokens: 1000,
@@ -7,8 +12,9 @@ const executeagent = async (message) => {
             { role: "user", content: message},
         ],
     });
-    return {
-        reply: response.content[0].text
-    };
+    const reply = response.content[0].text;
+
+    memoryservice.saveMessage(sessionId, "assistant", reply);
+    return { reply };
 };
 export default { executeagent };
