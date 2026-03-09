@@ -11,4 +11,4 @@ const saveMessage = (sessionId, role, content) => {
     sessions[sessionId].push({role,content});
 };
 
-export default { getHistory, saveMessage};
+export default { getHistory, saveMessage };
